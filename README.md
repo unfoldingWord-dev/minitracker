@@ -20,7 +20,7 @@ For easy testing and/or deployment, use the following docker containers:
 
 - Clone this repository
 ```
-git clone git@github.com:unfoldingWord-dev/minitracker
+git clone git@github.com:unfoldingWord/minitracker
 cd 
 pip install -r requirements.txt
 ```
