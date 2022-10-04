@@ -54,6 +54,66 @@ either through a .env file, or by setting them manually
 - `STAGE` (Are you running on `dev` or `prod`?)\
 On `dev`, we are quite verbose with logging, and we are running on the internal web server
 
+### Setup behind proxy
+The following is a basic 'Nginx as proxy' configuration
+```nginx
+# Set rate limiting at 5 requests per second per IP address
+limit_req_zone $binary_remote_addr zone=log_limit:10m rate=5r/s;
+
+server {
+    listen 80;
+
+    server_name <your server>;
+
+    access_log  /var/log/nginx/access.log main;
+    error_log  /var/log/nginx/error.log main;
+
+    location / {
+            proxy_pass         http://minitracker:3033/;
+            proxy_redirect     off;
+    
+            proxy_set_header   Host                 $host;
+            proxy_set_header   X-Real-IP            $remote_addr;
+            proxy_set_header   X-Forwarded-For      $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Proto    $scheme;
+        }
+    
+    location /log/downloads {
+        # Enable rate limiting
+        limit_req zone=log_limit;
+    
+        # Proxy to MiniTracker
+        proxy_pass         http://minitracker:3033;
+        proxy_redirect     off;
+    
+        proxy_set_header   Host                 $host;
+        proxy_set_header   X-Real-IP            $remote_addr;
+        proxy_set_header   X-Forwarded-For      $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto    $scheme;
+    
+        # Keep logs
+        access_log  /var/log/nginx/$host-downloads.log main;
+    
+        # CORS requests allowed
+        add_header 'Access-Control-Allow-Origin' 'https://www.openbiblestories.org/' always;
+        add_header 'Vary' 'Origin';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, OPTIONS';
+        add_header 'Access-Control-Allow-Headers' 'Authorization,DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
+        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
+        if ($request_method = 'OPTIONS') {
+           add_header 'Access-Control-Allow-Origin' 'https://www.openbiblestories.org/' always;
+           add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, OPTIONS';
+           add_header 'Access-Control-Allow-Headers' 'Authorization,DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
+           add_header 'Access-Control-Max-Age' 1728000; # 20 days
+           add_header 'Content-Type' 'text/plain; charset=utf-8';
+           add_header 'Content-Length' 0;
+           return 204;
+        }
+    }
+}
+```
+
+
 ## Authors
 
 - [yakob-aleksandrovich ](https://github.com/yakob-aleksandrovich)
