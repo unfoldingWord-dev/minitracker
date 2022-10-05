@@ -99,6 +99,8 @@ class MiniTracker:
         return False
 
     def download_logger(self):
+        my_prefix = 'obs.website.downloads'
+
         referrer = request.headers.get('Referer')
         useragent = request.headers.get('User-Agent')
 
@@ -132,7 +134,7 @@ class MiniTracker:
                                 self.logger.debug('Filetype : ' + str(file_ext))
                                 self.logger.debug('LC : ' + str(lc))
 
-                                metric = lc + '.' + category + '.' + file_ext
+                                metric = my_prefix + '.' + lc + '.' + category + '.' + file_ext
 
                                 self.__send_metric(metric, 1)
 
