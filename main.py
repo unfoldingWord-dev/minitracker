@@ -145,6 +145,8 @@ class MiniTracker:
                                 self.logger.warning("File %s could not be correctly parsed" % dl_file)
 
         # If a check fails, we simply send a Status 400 - Bad Request
+        self.logger.warning("400 - Bad request")
+
         status_code = 400
         text = self.__generate_error_page(status_code, 'Bad request')
 
